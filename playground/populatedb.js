@@ -4,9 +4,15 @@
 //
 //      /Users/rodney/mongodb/bin/mongod --dbpath=/Users/rodney/mongodb-data
 
+// this code will read data from file with name stored in const "fileName" 
+// It formats the data so that each element is a key named entry into the database
+// It will not write the data to the databas if the data already exist
+
+
 const _ = require('lodash');
 const fs = require('fs');
 
+const fileName = 'BTC_Data19.json'
 const exchange = 'CBP'
 const transaction = 'BTCUSD'
 const collection = exchange + '-' + transaction
@@ -21,7 +27,7 @@ const databaseName = 'crypto-data'
 
 var getData = () => {
     try{
-        var theData= fs.readFileSync('BTC_Data19.json');
+        var theData= fs.readFileSync(fileName);
         return JSON.parse(theData);
     } catch (e) {
         return [];
