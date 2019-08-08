@@ -21,7 +21,7 @@ const databaseName = 'crypto-data'
 
 var getData = () => {
     try{
-        var theData= fs.readFileSync('BTC_Data19.json');
+        var theData= fs.readFileSync('BTC_Data15.json');
         return JSON.parse(theData);
     } catch (e) {
         return [];
@@ -43,22 +43,10 @@ MongoClient.connect(connectionURL, {useNewUrlParser: true }, (error,client) => {
     // console.log('Connected Correctly')
     const db = client.db(databaseName)
     // for loop writes the data from the file in the correct format to the Database
- 
+
     var currentValue= {}
-    // var dataValue = _.zipObject(keynames, historyData[0]);
-    // console.log(dataValue)
-    // currentValue = { timestamp : dataValue.timestamp}
-    // console.log(currentValue)
-    // db.collection('CBP-BTCUSD').updateOne(
-    //     currentValue,
-    //     {$set:dataValue},
-    //     {upsert: true }
-    // )
-
-
     for (var i = 0; i < historyData.length; i++) { 
-    // for (var i = 0; i < 5; i++) { 
-            var dataValue = _.zipObject(keynames, historyData[i]);
+        var dataValue = _.zipObject(keynames, historyData[i]);
         // console.log(dataValue)
         currentValue = { timestamp : dataValue.timestamp}
         // console.log(currentValue)
@@ -68,7 +56,7 @@ MongoClient.connect(connectionURL, {useNewUrlParser: true }, (error,client) => {
             {upsert: true }
         )
     }
-    console.log('Finished loading data')
+    
     // db.collection('CBP-BTCUSD').updateOne(
     //     { timestamp: 1438423140 },
     //     {$set:{
