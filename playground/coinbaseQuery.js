@@ -47,26 +47,26 @@ var Current_Product= 'BTC-USD';
 // console.log(`start= ${start_time}\nEnd= ${end_time}`);
 // var the_data= 'nothing';
 
-// cbxQuery.getHistoricRates (Current_Product, start_time, end_time, granularity).then(res => {
-//     // console.log('The Return value is:', JSON.stringify(res, undefined,2));
-//     the_data = res;
-//     console.log('the_data type: ', typeof the_data );
-//     var df = new DataFrame(the_data);
-//     df= df.renameAll(['Time','Low', 'High', 'Open','Close','Volume']);
-//     df.show();
-//     console.log('Data dimensions: ', df.dim());
-// }, (errorMessage) => {
-//     console.log(`error: ${errorMessage}`);
-// });
+cbxQuery.getHistoricRates (Current_Product, start_time, end_time, granularity).then(res => {
+    // console.log('The Return value is:', JSON.stringify(res, undefined,2));
+    the_data = res;
+    console.log('the_data type: ', typeof the_data );
+    var df = new DataFrame(the_data);
+    df= df.renameAll(['Time','Low', 'High', 'Open','Close','Volume']);
+    df.show();
+    console.log('Data dimensions: ', df.dim());
+}, (errorMessage) => {
+    console.log(`error: ${errorMessage}`);
+});
 
 //Test getLongHistoricRates
 
-const start_time = new Date(2019,5,1,0,0).toISOString();
-const end_time =   new Date(2019,6,14,0,0).toISOString();
+const start_time = new Date(2018,0,1,0,0).toISOString();
+const end_time =   new Date(2019,0,1,0,0).toISOString();
 // acceptedGrans are [60, 300, 900, 3600, 21600, 86400]
 
-const granularity = 60;
-//const granularity = 86400;
+//const granularity = 60;
+const granularity = 86400;
 //const granularity = 3600;
 var multiP= cbxQuery.getLongHistoricRates(Current_Product, start_time, end_time, granularity);
 
@@ -76,13 +76,18 @@ console.log('multiP; ', multiP)
 multiP.then((message) => {
   console.log(`Success: ${message}`);
   Promise.all(message).then(function(values) {
-    console.log('Result=',values);
     var mergeValues=[]
     for (let i = 0; i < values.length; i++) {
       mergeValues= mergeValues.concat(values[i])
-  } 
-    fs.writeFileSync('BTC_Data.json', JSON.stringify(mergeValues))
-    ;
+    } 
+    if (  Array.isArray(mergeValues) && values.mergeValues){
+      console.log('Result is Empty');
+    }
+    else {
+      console.log('Result=',mergeValues);
+    }
+    // fs.writeFileSync('BTC_Data.json', JSON.stringify(mergeValues));
+
   });
 }, (errorMessage) => {
   console.log(`Failure: ${errorMessage}`);

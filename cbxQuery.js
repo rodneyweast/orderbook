@@ -5,6 +5,7 @@
 
 var DataFrame = require('dataframe-js').DataFrame;
 const request = require('request');
+
 const math = require('mathjs');
 const URL = 'https://api.pro.coinbase.com'
 
@@ -175,9 +176,9 @@ var getLongHistoricRates = (async (product, start_time, end_time, granularity) =
     var endSeconds = Date.parse(end_time)/1000
     var deltaT = endSeconds - startSeconds
     var dataEntries = deltaT/granularity
-    //console.log(`Start: ${startSeconds}   End: ${endSeconds}   DeltaT: ${deltaT}   Data Entries: ${dataEntries}`)
+    console.log(`Start: ${startSeconds}   End: ${endSeconds}   DeltaT: ${deltaT}   Data Entries: ${dataEntries}`)
     var nSteps = Math.floor(dataEntries/300)
-    console.log('Number of Steps: ',nSteps,'\n••••••••••••••••••••••••\n')
+    console.log('Number of Steps: ',nSteps+1,'\n••••••••••••••••••••••••\n')
     var startTime= start_time
     var endTime = end_time;
     let totalResults = []
@@ -187,13 +188,20 @@ var getLongHistoricRates = (async (product, start_time, end_time, granularity) =
         endTime = new Date(math.min(endSeconds, (startSeconds+granularity*300))*1000)
         startSeconds += granularity*301
         console.log(`Processing step ${i} of ${nSteps}`)
-        await sleep(3000)
-        totalResults.push(getHistoricRates (product, startTime, endTime, granularity))
+        await sleep(4000);
+        totalResults.push(getHistoricRates (product, startTime, endTime, granularity));
     }
+    console.log('After getLongHistory for loop');
+   
+
     return totalResults;
+
+
+
 });
 
 module.exports={
+    sleep,
     validCurrency,
     getTicker,
     get_product_order_book,
