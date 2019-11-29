@@ -67,7 +67,7 @@ var loadDataset = (async (product, startDate, enDate) => {
   } while ( currentDate < endDate);
 });
 
-function mostRecentDBDate(exch, cp, callback) {
+function DBmostRecentDate(exch, cp, callback) {
   const connectionURL = 'mongodb://127.0.0.1:27017/'
   MongoClient.connect(connectionURL, { useNewUrlParser: true, },function(err, client) {
     if (err) {
@@ -81,8 +81,26 @@ function mostRecentDBDate(exch, cp, callback) {
   });
 }
 
+
+function DBupdateSet(exch, cp, dataSet) {
+  const connectionURL = 'mongodb://127.0.0.1:27017/'
+  MongoClient.connect(connectionURL, { useNewUrlParser: true, },function(err, client) {
+      if (err) {
+        console.log('error: ',err);
+      }
+  client.db(exch).collection(cp).bulkWrite(dataSet).then(res => {
+    console.log(`Bulk write value: ${JSON.stringify(res, undefined, 2)}`);
+  }, (errorMessage) => {
+    console.log(errorMessage);
+  });
+  client.close();
+});
+}
+
+
 module.exports={
   getStartDate,
-  mostRecentDBDate
+  DBmostRecentDate,
+  DBupdateSet
 }
 
