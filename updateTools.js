@@ -1,5 +1,6 @@
 const cbxQuery = require('./cbxQuery');
 const MongoClient = require('mongodb').MongoClient;
+const connectionURL = 'mongodb://127.0.0.1:27017/'
 
 var getStartDate = (async (product) => {
   var Year= 2014
@@ -51,12 +52,12 @@ var loadDataset = (async (product, startDate, enDate) => {
       i++;
       currentEnd= new Date(currentStart.getTime() + 300 * granularity*1000);
       if (currentEnd > endDate) currentEnd= new Date(endDate);
-      console.log (`Start Date ${i}: ${new Date(startDate)}`);
+      // console.log (`Start Date ${i}: ${new Date(startDate)}`);
+      
       // get the Historic Rates
       currentSet = await cbxQuery.getHistoricRates (product, startDate, endDate, granularity);
       startDate= new Date(startDate.getTime() + 301 * granularity*1000);
       console.log('After creating new startDate')
-
       if ( Array.isArray(currentSet) && currentSet.length > 0){
           console.log('found Data')
           break
@@ -68,7 +69,6 @@ var loadDataset = (async (product, startDate, enDate) => {
 });
 
 function DBmostRecentDate(exch, cp, callback) {
-  const connectionURL = 'mongodb://127.0.0.1:27017/'
   MongoClient.connect(connectionURL, { useNewUrlParser: true, },function(err, client) {
     if (err) {
       return console.dir(err);
@@ -81,26 +81,80 @@ function DBmostRecentDate(exch, cp, callback) {
   });
 }
 
-
 function DBupdateSet(exch, cp, dataSet) {
-  const connectionURL = 'mongodb://127.0.0.1:27017/'
+  // dataSet is an Array in the format returned by Coinbase getHistoric Data
+  // [[date, low, high, open, close, volume], ...]
+  
+ 
+  var dataItem
+  var objects = [];
+  
+  for (var x = 0; x < dataSet.length; x++) {
+    dataItem= {
+      time: new Date(dataSet[x][0]*1000).toISOString(),
+      low: dataSet[x][1],
+      high: dataSet[x][2],
+      open: dataSet[x][3],
+      close: dataSet[x][4],
+      Volume: dataSet[x][5]
+    }
+    //console.log('dataItem: ',dataItem)
+    objects[x] = 
+    {
+      updateOne: 
+        {
+          filter: {time: new Date(dataItem.time).toISOString()},
+          update: { $set: dataItem },
+          upsert: true
+        }
+    }
+  }
+  console.log(objects[0])
   MongoClient.connect(connectionURL, { useNewUrlParser: true, },function(err, client) {
       if (err) {
         console.log('error: ',err);
       }
-  client.db(exch).collection(cp).bulkWrite(dataSet).then(res => {
-    console.log(`Bulk write value: ${JSON.stringify(res, undefined, 2)}`);
-  }, (errorMessage) => {
-    console.log(errorMessage);
+    client.db(exch).collection(cp).bulkWrite(objects).then(res => {
+      // console.log(`Bulk write value: ${JSON.stringify(res, undefined, 2)}`);
+    }, (errorMessage) => {
+      console.log(errorMessage);
+    });
+    client.close();
   });
-  client.close();
-});
+}
+
+function DBupdateCollection(exch, cp, startDate) {
+    var nowDate = Math.floor(Date.now()/60000)*60000
+    var endDate = Math.floor(startDate/60000)*60000
+    if (endDate > nowDate) endDate= nowDate
+}
+
+function DBproductExist(exch, productCode, callback) {
+  //checks to see if the productCode exists in the database
+  // Returns a boolean indicating true if it exist and fals if it doesn't
+  MongoClient.connect(connectionURL, { useNewUrlParser: true},function(err, client) {
+    if (err) {
+      return console.dir(err);
+    }
+    client.db(exch).listCollections().toArray(function(err, items) {
+      var allCollections = []
+      items.forEach(eachCollectionDetails => {
+          allCollections.push(eachCollectionDetails.name);
+      });
+      client.close();
+      if (allCollections.includes(productCode)) 
+          return callback(true)
+      else
+          return callback(false);  
+    });
+  });
 }
 
 
 module.exports={
   getStartDate,
   DBmostRecentDate,
-  DBupdateSet
+  DBupdateSet,
+  DBproductExist
 }
 

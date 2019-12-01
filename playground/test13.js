@@ -6,14 +6,22 @@ var MongoClient = require('mongodb').MongoClient;
 
 const exchange = 'CBP'
 const Current_Product = 'BTC-USD'
+const connectionURL = 'mongodb://127.0.0.1:27017/'
 
-const connectionURL = 'mongodb://127.0.0.1:27017/' + exchange
-MongoClient.connect(connectionURL, { useNewUrlParser: true, },function(err, client) {
-  if (err) throw err;
-  console.log('before client.db')
-  client.db(exchange).collection(Current_Product).find().sort({"time": -1}).limit(1).toArray(function(err, result) {
-    if (err) throw err;
-    console.log(result[0].time);
+function DBmostRecentDate(exch, cp, callback) {
+  MongoClient.connect(connectionURL, { useNewUrlParser: true, },function(err, client) {
+    if (err) {
+      return console.dir(err);
+    }
+    client.db(exch).collection(cp).find().sort({"time": -1}).limit(1).toArray(function(err, items) {
+      // console.log(items);
+      client.close(); 
+      return callback(items[0].time);     
+    });
   });
-  client.close();
-});
+}
+
+
+DBmostRecentDate(exchange, Current_Product, function(res){
+  console.log(res);
+})

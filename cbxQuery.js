@@ -150,7 +150,7 @@ var getHistoricRates = ((product, start_time, end_time, granularity) => {
                     reject(`Product Code Error: ${response.statusCode} 
                     Request: ${requestString}`);
                 } else { 
-                    //console.log(JSON.stringify(body,undefined,2));
+                    // console.log(JSON.stringify(body,undefined,2));
                     resolve(body);
                 };
             });
