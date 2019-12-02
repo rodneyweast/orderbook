@@ -47,7 +47,7 @@ function DBfillBlanks(exch, cp) {
                   // [[date, low, high, open, close, volume], ...]
                   item = [timeInSeconds, r.low, r.high, r.open, r.close, r.volume]
                   theDate= new Date(timeInSeconds*1000)
-                  console.log(theDate, item)
+                //   console.log(theDate, item)
                   appendList.push(item)
                   // console.log(`tt: ${tt}\n r: ${r.time}\n••••••••••••••••••`)
                   if (appendList.length >=999) break;
@@ -56,7 +56,7 @@ function DBfillBlanks(exch, cp) {
           if (appendList.length >=999) break;
       }
       console.log(`${appendList.length} Items Added`)
-      updatetools.DBupdateSet(exch, cp, appendList)
+      if (appendList.length>0) updatetools.DBupdateSet(exch, cp, appendList)
     });
   });
 }

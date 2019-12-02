@@ -61,12 +61,13 @@ var LoadData = (async (exchange, product, startdate) => {
         // console.log('before call to getHistoricRates')
         currentSet = await cbxQuery.getHistoricRates (product, currentStart, currentEnd, granularity)
         // console.log('currentSet; ', currentSet)
+
         updatetools.DBupdateSet(exchange,product,currentSet)
         currentStart= new Date(currentStart.getTime() + 301 * granularity*1000);
-         await cbxQuery.sleep(500) 
-        console.log('after sleep')
+        await cbxQuery.sleep(500) 
+        // console.log('after sleep')
     } while ( currentStart < endDate);
     console.log('wow it is here')
 });
 
-LoadData(exchange, product, new Date('2015-08-10T11:33:00.000Z'))
+LoadData(exchange, product, new Date('2015-08-01T11:33:00.000Z'))

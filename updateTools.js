@@ -111,15 +111,12 @@ function DBupdateSet(exch, cp, dataSet) {
   }
   console.log(objects[0])
   MongoClient.connect(connectionURL, { useNewUrlParser: true, },function(err, client) {
-      if (err) {
-        console.log('error: ',err);
-      }
+      if (err) throw err;
     client.db(exch).collection(cp).bulkWrite(objects).then(res => {
+      client.close();
       // console.log(`Bulk write value: ${JSON.stringify(res, undefined, 2)}`);
-    }, (errorMessage) => {
-      console.log(errorMessage);
+    }, (errorMessage) => {throw errorMessage;
     });
-    client.close();
   });
 }
 

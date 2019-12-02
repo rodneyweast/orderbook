@@ -1,4 +1,4 @@
-var async = require('async'),
+const async = require('async'),
     mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
