@@ -59,7 +59,7 @@ var loadDataset = (async (product, startDate, enDate) => {
       startDate= new Date(startDate.getTime() + 301 * granularity*1000);
       console.log('After creating new startDate')
       if ( Array.isArray(currentSet) && currentSet.length > 0){
-          console.log('found Data')
+          // console.log('found Data')
           break
         }
       else {
@@ -67,6 +67,38 @@ var loadDataset = (async (product, startDate, enDate) => {
       }
   } while ( currentDate < endDate);
 });
+
+var LoadData = (async (exchange, product, startdate) => {
+  var startDate = new Date( Math.floor(startdate.getTime()/60)*60)
+  var currentStart=new Date(startDate);
+  // var endDate= new Date(startDate.getTime()+30*86400*1000);
+  var endDate= new Date(startDate.getTime()+60*(2*30*1440)*1000);   // 60days= ~ 1 months later
+  if (endDate> (new Date())) endDate= Math.floor(new Date()/60)*60;
+  var currentEnd
+  var granularity = 60;
+  var currentSet
+  var i = 0;
+  var dateNumber
+  var dateText
+  do {
+     i++;
+      currentEnd= new Date(currentStart.getTime() + 300 * granularity*1000);
+      if (currentEnd > endDate) currentEnd= new Date(endDate);
+      dateNumber= currentStart.getTime()
+      dateText= new Date(dateNumber).toISOString()
+      console.log(`Start ${i}:  ${new Date(currentStart).toISOString()}`)
+      // get the Historic Rates
+      // console.log('before call to getHistoricRates')
+      currentSet = await cbxQuery.getHistoricRates (product, currentStart, currentEnd, granularity)
+      // console.log('currentSet; ', currentSet)
+      DBupdateSet(exchange,product,currentSet)
+      currentStart= new Date(currentStart.getTime() + 300 * granularity*1000);
+      await cbxQuery.sleep(500) 
+      // console.log('after sleep')
+  } while ( currentStart < endDate);
+  console.log('Finishing dataset')
+});
+
 
 function DBmostRecentDate(exch, cp, callback) {
   MongoClient.connect(connectionURL, { useNewUrlParser: true, },function(err, client) {
@@ -109,7 +141,7 @@ function DBupdateSet(exch, cp, dataSet) {
         }
     }
   }
-  console.log(objects[0])
+  // console.log(objects[0])
   MongoClient.connect(connectionURL, { useNewUrlParser: true, },function(err, client) {
       if (err) throw err;
     client.db(exch).collection(cp).bulkWrite(objects).then(res => {
@@ -148,10 +180,61 @@ function DBproductExist(exch, productCode, callback) {
 }
 
 
+function DBfillBlanks(exch, cp) {
+  MongoClient.connect(connectionURL, { useNewUrlParser: true, },function(err, client) {
+    if (err) {
+      return console.dir(err);
+    }
+    client.db(exch).collection(cp).find().sort({"time": 1}).limit(1000).toArray(function(err, items) {
+    //   console.log(items);
+      client.close(); 
+
+      var t=items[1].time
+      var told
+      var deltaT
+      var appendList=[]
+      var tt
+      var resold
+      var r
+      var timeInSeconds
+      var item
+      var theDate
+      for (var i=1; i< items.length; i++) {
+          t= items[i].time
+          told= items[i-1].time
+          deltaT= (new Date(t).getTime()-new Date(told).getTime())/60000
+        //   console.log(`t: ${t}   told: ${told}  deltaT: ${deltaT}`)
+          if (deltaT>1){
+              // console.log("••••••••••••••••••••••\nTime: ",t, "   ∆t: ", deltaT )
+              resold= items[i-1]
+              for (let j=1; j< deltaT; j++){
+                  r= Object.assign({}, resold);
+                  // console.log(`t: ${t}   tt: ${tt} `)
+                  timeInSeconds = (new Date(new Date(told).getTime() + 60000 * j)).getTime()/1000
+                  r.volume= 0.0
+                  // [[date, low, high, open, close, volume], ...]
+                  item = [timeInSeconds, r.low, r.high, r.open, r.close, r.volume]
+                  theDate= new Date(timeInSeconds*1000)
+                  console.log(theDate, item)
+                  appendList.push(item)
+                  // console.log(`tt: ${tt}\n r: ${r.time}\n••••••••••••••••••`)
+                  if (appendList.length >=999) break;
+              }
+          }
+          if (appendList.length >=999) break;
+      }
+      console.log(`${appendList.length} Items Added`)
+      DBupdateSet(exch, cp, appendList)
+    });
+  });
+}
+
 module.exports={
+  LoadData,
   getStartDate,
   DBmostRecentDate,
   DBupdateSet,
-  DBproductExist
+  DBproductExist,
+  DBfillBlanks
 }
 

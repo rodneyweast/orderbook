@@ -42,32 +42,4 @@ const exchange = 'CBP'
 const product = 'BTC-USD'
 const connectionURL = 'mongodb://127.0.0.1:27017/'
 
-var LoadData = (async (exchange, product, startdate) => {
-    var startDate = new Date( Math.floor(startdate.getTime()/60)*60)
-    var currentStart=new Date(startDate);
-    // var endDate= new Date(startDate.getTime()+30*86400*1000);
-    var endDate= new Date(startDate.getTime()+60*(1*30*1440)*1000);   // 60days= ~ 1 months later
-    if (endDate> (new Date())) endDate= Math.floor(new Date()/60)*60;
-    var currentEnd
-    var granularity = 60;
-    var currentSet
-    var i = 0;
-    do {
-       i++;
-        currentEnd= new Date(currentStart.getTime() + 300 * granularity*1000);
-        if (currentEnd > endDate) currentEnd= new Date(endDate);
-        console.log(`Start ${i}: ${currentStart}`)
-        // get the Historic Rates
-        // console.log('before call to getHistoricRates')
-        currentSet = await cbxQuery.getHistoricRates (product, currentStart, currentEnd, granularity)
-        // console.log('currentSet; ', currentSet)
-
-        updatetools.DBupdateSet(exchange,product,currentSet)
-        currentStart= new Date(currentStart.getTime() + 301 * granularity*1000);
-        await cbxQuery.sleep(500) 
-        // console.log('after sleep')
-    } while ( currentStart < endDate);
-    console.log('wow it is here')
-});
-
-LoadData(exchange, product, new Date('2015-08-01T11:33:00.000Z'))
+updatetools.LoadData(exchange, product, new Date('2015-08-01T01:01:00.000Z'))
