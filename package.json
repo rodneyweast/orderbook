@@ -17,7 +17,7 @@
     "lodash": "^4.17.15",
     "math": "0.0.3",
     "math.js": "^1.1.43",
-    "mathjs": "^5.7.0",
+    "mathjs": "^7.5.1",
     "mongodb": "^3.3.0-beta2",
     "mongoose": "^5.7.7",
     "request": "^2.88.0"
